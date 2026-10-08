@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OmniMesh AI - All Retail Sectors</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{background:#020617;color:#f1f5f9;font-family:system-ui,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.g{background:rgba(30,41,59,.65);border:1px solid rgba(255,255,255,.07);border-radius:1rem}
+.b{padding:.4rem .75rem;border-radius:.6rem;background:#1e293b;border:1px solid #334155;font-size:12px;white-space:nowrap}
+.b:hover{background:#334155}.on{background:#4f46e5!important;border-color:#6366f1!important}
+.sc::-webkit-scrollbar{height:5px;width:5px}.sc::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
+</style></head>
+<body>
+<header class="sticky top-0 z-40 bg-slate-900/95 border-b border-indigo-500/20 backdrop-blur">
+ <div id="demoTools" class="hidden px-3 py-2 text-xs border-b border-slate-800 flex flex-wrap items-center gap-2 bg-indigo-950/40">
+  <b class="text-amber-300">🏆 DEMO</b>
+  <button class="b" onclick="rush()">🔥 Demand Rush</button>
+  <button class="b" onclick="stockout()">⚠️ Online Stockout</button>
+  <button class="b" onclick="abandon()">🛒 Abandoned Cart</button>
+  <button class="b" onclick="reset()">↺ Reset</button>
+ </div>
+ <div class="max-w-7xl mx-auto px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+  <div class="font-extrabold cursor-pointer" onclick="home()">🕸️ OmniMesh <span class="text-xs bg-indigo-500/30 px-1.5 rounded">AI</span></div>
+  <nav id="mainNav" class="hidden flex gap-1 text-sm">
+   <button id="n-store" class="b" onclick="go('store')">🏪 Store</button>
+   <button id="n-inv" class="b" onclick="go('inv')">📦 Inventory <span id="lowb" class="text-amber-300 text-[10px]"></span></button>
+   <button id="n-ai" class="b" onclick="go('ai')">🧠 AI Mesh</button>
+   <button id="n-care" class="b" onclick="go('care')">🎧 Customer Care</button>
+  </nav>
+  <div class="flex items-center gap-2">
+   <span id="who" class="text-xs text-slate-300">Guest</span>
+   <button id="loginBtn" class="b on" onclick="openAuth('login')">Login</button>
+   <button id="signupBtn" class="b" onclick="openAuth('signup')">Sign Up</button>
+   <button id="logoutBtn" class="hidden b" onclick="logout()">Log out</button>
+   <button id="cartBtn" class="hidden b" onclick="$('drawer').classList.remove('hidden')">🛒 <b id="cc" class="text-indigo-300">0</b></button>
+  </div>
+ </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-3 py-5 space-y-6">
+<section id="orderTracking" class="hidden max-w-7xl mx-auto mb-4 g p-4 border border-cyan-500/30">
+ <div class="flex flex-wrap items-start justify-between gap-3">
+  <div><div class="text-xs text-cyan-300 font-semibold">📦 CUSTOMER ORDER TRACKING</div><h2 class="font-bold text-lg mt-1">Order <span id="orderNumber"></span></h2><p id="deliveryMessage" class="text-sm text-slate-300 mt-1"></p></div>
+  <div class="text-right text-xs"><div id="deliveryStatus" class="font-bold text-emerald-300">Order Confirmed</div><div id="deliveryPayment" class="text-slate-400 mt-1"></div></div>
+ </div>
+ <div class="mt-4 h-2 rounded-full bg-slate-800 overflow-hidden"><div id="deliveryProgress" class="h-full bg-cyan-400 transition-all duration-700" style="width:20%"></div></div>
+ <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>Confirmed</span><span>Out for delivery</span><span>Delivered</span></div>
+</section>
+
+<section id="landing" class="max-w-4xl mx-auto py-10 sm:py-16">
+ <div class="rounded-3xl p-7 sm:p-12 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-950 border border-indigo-500/30 space-y-5">
+  <div class="text-xs text-cyan-300 font-bold tracking-widest">WELCOME TO OMNIMESH</div>
+  <h1 class="text-3xl sm:text-5xl font-black leading-tight">One simple place to shop and manage <span class="text-cyan-400">retail inventory</span></h1>
+  <p class="text-slate-300 text-base max-w-2xl">Browse products across 9 retail sectors, check live store stock, get personalized bundles, and track your delivery from one dashboard.</p>
+  <div class="flex flex-wrap gap-3 pt-2">
+   <button class="b on !text-sm !px-5 !py-3" onclick="openAuth('login')">Login</button>
+   <button class="b !text-sm !px-5 !py-3" onclick="openAuth('signup')">Create Account</button>
+   <button class="b !text-sm !px-5 !py-3" onclick="guestLogin()">Continue as Guest</button>
+  </div>
+  <div class="grid sm:grid-cols-3 gap-3 pt-4 text-sm">
+   <div class="g p-4">🛍️ <b>Shop 9 sectors</b><p class="text-xs text-slate-400 mt-1">225 products across everyday categories.</p></div>
+   <div class="g p-4">📦 <b>Live inventory</b><p class="text-xs text-slate-400 mt-1">See availability across store locations.</p></div>
+   <div class="g p-4">🚚 <b>Track delivery</b><p class="text-xs text-slate-400 mt-1">Follow order progress until delivery.</p></div>
+  </div>
+ </div>
+ <div id="secGrid" class="hidden"></div>
+</section>
+
+<div id="dash" class="hidden space-y-5">
+ <div id="secBar" class="flex gap-2 overflow-x-auto sc pb-2"></div>
+ <div id="rushBanner" class="hidden g p-4 border border-amber-400/40 bg-amber-950/30" role="status" aria-live="polite"><div class="font-bold text-amber-300">🔥 Demand Rush Active</div><p id="rushMessage" class="text-sm text-slate-200 mt-1"></p></div>
+
+ <section id="t-store" class="space-y-5">
+  <div class="g p-4 flex flex-col lg:flex-row gap-3 lg:items-center justify-between">
+   <div id="perBar" class="flex flex-wrap gap-2"></div>
+   <input id="q" oninput="search(this.value)" placeholder="Search products / category..." class="lg:w-80 bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-cyan-500">
+  </div>
+  <div id="subBar" class="flex gap-2 overflow-x-auto sc pb-1"></div>
+  <div class="rounded-2xl p-6 bg-gradient-to-r from-indigo-900 via-slate-900 to-slate-950 border border-indigo-500/30">
+   <div id="hTag" class="text-xs text-indigo-300"></div>
+   <h2 id="hTitle" class="text-2xl font-extrabold"></h2>
+   <p id="hDesc" class="text-sm text-slate-300"></p>
+  </div>
+  <div class="g p-4 border-cyan-500/30">
+   <div class="font-bold text-sm mb-3">🪄 AI Synthesized Bundle <span id="bTag" class="text-xs text-cyan-300 font-mono ml-2"></span></div>
+   <div class="grid lg:grid-cols-12 gap-3 items-center">
+    <div id="bItems" class="lg:col-span-8 grid sm:grid-cols-3 gap-2"></div>
+    <div class="lg:col-span-4 bg-slate-900 rounded-xl p-3 border border-slate-800 space-y-1">
+     <div class="text-xs text-slate-400">Regular <span id="bReg" class="line-through"></span></div>
+     <div id="bDisc" class="text-xs text-emerald-400"></div>
+     <div id="bFinal" class="text-2xl font-black text-cyan-300"></div>
+     <button class="b on w-full" onclick="addBundle()">Add Complete Bundle</button>
+    </div>
+   </div>
+  </div>
+  <div class="flex justify-between text-sm"><h3 class="font-bold">Live Multi-Location Catalog</h3><span class="text-slate-400"><b id="cnt" class="text-white"></b> SKUs</span></div>
+  <div id="grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+ </section>
+
+ <section id="t-inv" class="hidden space-y-5">
+  <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 text-center text-xs text-slate-400">
+   <div class="g p-3">SKUs<div id="kAll" class="text-2xl font-extrabold text-white"></div></div>
+   <div class="g p-3">Low Stock<div id="kLow" class="text-2xl font-extrabold text-amber-400"></div></div>
+   <div class="g p-3">Overstock<div id="kOver" class="text-2xl font-extrabold text-cyan-400"></div></div>
+   <div class="g p-3">Stockouts Prevented<div id="kPrev" class="text-2xl font-extrabold text-rose-400"></div></div>
+   <div class="g p-3 col-span-2 lg:col-span-1">Margin Lift<div class="text-2xl font-extrabold text-emerald-400">+18.4%</div></div>
+  </div>
+  <div class="g p-4 space-y-3">
+   <div class="flex justify-between items-center"><h3 class="font-bold" id="invTitle"></h3><button id="restockBtn" class="b hidden" onclick="restock()">📦 Restock Online</button></div>
+   <div class="overflow-x-auto sc">
+    <table class="w-full text-xs text-left">
+     <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]"><tr><th class="p-2">Product</th><th class="p-2">Type</th><th class="p-2">Online</th><th class="p-2">Chennai</th><th class="p-2">Vellore</th><th class="p-2">Bangalore</th><th class="p-2">Warehouse</th><th class="p-2">Total</th><th class="p-2">Status</th><th class="p-2"></th></tr></thead>
+     <tbody id="invBody" class="divide-y divide-slate-800 font-mono"></tbody>
+    </table>
+   </div>
+  </div>
+ </section>
+
+ <section id="t-ai" class="hidden space-y-5">
+  <div class="g p-4 space-y-3">
+   <div class="flex justify-between items-center"><h2 class="font-black text-lg">3-Agent Decision Flow</h2>
+    <div class="flex gap-2"><button id="pz" class="b" onclick="pause()">⏸ Pause</button><button class="b" onclick="$('logbox').innerHTML=''">🗑 Clear</button></div></div>
+   <div class="grid md:grid-cols-3 gap-3 text-xs">
+    <div class="g p-3"><b>Agent 1: Persona</b><div id="a1" class="text-indigo-300 mt-1"></div></div>
+    <div class="g p-3"><b>Agent 2: Inventory Sync</b><div id="a2" class="text-emerald-300 mt-1"></div></div>
+    <div class="g p-3"><b>Agent 3: Dynamic Pricing</b><div id="a3" class="text-cyan-300 mt-1"></div></div>
+   </div>
+  </div>
+  <div id="logbox" class="bg-slate-950 p-3 rounded-xl border border-slate-800 h-72 overflow-y-auto sc font-mono text-xs space-y-1"></div>
+ </section>
+
+ <section id="t-care" class="hidden space-y-5">
+  <div class="g p-5 space-y-2"><h2 class="text-2xl font-bold">🎧 Customer Care</h2><p class="text-sm text-slate-300">Send a message to the OmniMesh support team. Replies in this demo are simulated.</p></div>
+  <div id="careMessages" class="g p-4 min-h-48 max-h-96 overflow-y-auto space-y-3"></div>
+  <form onsubmit="sendCareMessage(event)" class="g p-3 flex gap-2"><input id="careInput" required maxlength="500" placeholder="Type your message..." class="flex-1 min-w-0 bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700"><button class="b on" type="submit">Send</button></form>
+ </section>
+</div>
+</main>
+
+<div id="auth" class="fixed inset-0 z-50 hidden bg-slate-950/80 flex items-center justify-center p-4">
+ <div class="g max-w-sm w-full p-5 space-y-4 bg-slate-900 max-h-[90vh] overflow-y-auto">
+  <div class="flex justify-between items-center"><b id="authTitle">Login</b><button onclick="closeAuth()">✕</button></div>
+  <div class="grid grid-cols-2 gap-2">
+   <button id="authLoginTab" class="b on" onclick="switchAuth('login')">Login</button>
+   <button id="authSignupTab" class="b" onclick="switchAuth('signup')">Sign Up</button>
+  </div>
+  <form id="loginForm" onsubmit="submitLogin(event)" class="space-y-3">
+   <input id="loginEmail" type="email" required placeholder="Email address" class="w-full bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700">
+   <input id="loginPassword" type="password" required placeholder="Password" class="w-full bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700">
+   <button class="b on w-full" type="submit">Login and Open Dashboard</button>
+   <button class="b w-full" type="button" onclick="guestLogin()">Continue as Guest</button>
+  </form>
+  <form id="signupForm" onsubmit="submitSignup(event)" class="hidden space-y-3">
+   <input id="signupName" required maxlength="60" placeholder="Full name" class="w-full bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700">
+   <input id="signupEmail" type="email" required placeholder="Email address" class="w-full bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700">
+   <select id="signupRole" class="w-full bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700"><option value="customer">Customer account</option><option value="manager">Manager (demo role)</option><option value="owner">Owner (demo role)</option></select>
+   <input id="signupPassword" type="password" required minlength="6" placeholder="Create password (6+ characters)" class="w-full bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700">
+   <input id="signupConfirm" type="password" required minlength="6" placeholder="Confirm password" class="w-full bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700">
+   <button class="b on w-full" type="submit">Create Account and Continue</button>
+  </form>
+  <p id="authHint" class="text-xs text-slate-400">Create an account to open the store dashboard.</p>
+  <p class="text-[11px] text-amber-300 border border-amber-500/20 rounded-lg p-2">Demo only: accounts and role choices are stored in this browser. Roles are not securely verified; do not use real passwords or treat Manager/Owner roles as production permissions.</p>
+ </div>
+</div>
+
+<div id="drawer" class="fixed inset-0 z-50 hidden bg-slate-950/70">
+ <div class="absolute inset-y-0 right-0 max-w-md w-full bg-slate-900 border-l border-slate-800 p-5 flex flex-col justify-between">
+  <div class="space-y-3 overflow-y-auto sc">
+   <div class="flex justify-between border-b border-slate-800 pb-2"><b>🛍️ Shopping Cart</b><button onclick="$('drawer').classList.add('hidden')">✕</button></div>
+   <div id="cartBox" class="space-y-2"></div>
+  </div>
+  <div class="border-t border-slate-800 pt-3 space-y-2 text-sm">
+   <div class="flex justify-between text-slate-400"><span>Subtotal</span><span id="cSub"></span></div>
+   <div class="flex justify-between text-emerald-400"><span>Mesh Discount</span><span id="cDis"></span></div>
+   <div class="flex justify-between font-bold text-lg"><span>Total</span><span id="cTot" class="text-cyan-300"></span></div>
+   <div class="space-y-2">
+    <div class="text-xs font-semibold text-slate-300">Choose Payment Method</div>
+    <div class="grid grid-cols-2 gap-2">
+     <button class="b" onclick="beginPayment('cod')">💵 Cash on Delivery</button>
+     <button class="b" onclick="beginPayment('debit')">💳 Debit Card</button>
+     <button class="b" onclick="beginPayment('credit')">💳 Credit Card</button>
+     <button class="b" onclick="beginPayment('qr')">▦ Scan QR Code</button>
+    </div>
+    <button class="b on w-full !py-3" onclick="checkout()">Continue to Payment</button>
+   </div>
+  </div>
+ </div>
+</div>
+
+<div id="paymentModal" class="fixed inset-0 z-[60] hidden bg-slate-950/80 flex items-center justify-center p-4">
+ <div class="g max-w-lg w-full p-5 sm:p-6 space-y-4 bg-slate-900 max-h-[90vh] overflow-y-auto sc">
+  <div class="flex justify-between items-center"><div><h2 class="text-xl font-bold">Choose Payment Method</h2><p class="text-xs text-slate-400">Order total: <b id="paymentAmount" class="text-cyan-300"></b></p></div><button class="b" onclick="closePayment()">✕</button></div>
+  <div class="grid grid-cols-2 gap-2">
+   <button id="paybtn-cod" class="b" onclick="selectPayment('cod')">💵 Cash on Delivery</button>
+   <button id="paybtn-debit" class="b" onclick="selectPayment('debit')">💳 Debit Card</button>
+   <button id="paybtn-credit" class="b" onclick="selectPayment('credit')">💳 Credit Card</button>
+   <button id="paybtn-qr" class="b" onclick="selectPayment('qr')">▦ Scan QR Code</button>
+  </div>
+  <div id="pay-cod" class="hidden g p-4 text-sm text-slate-300">Pay in cash when your order is delivered.</div>
+  <div id="pay-card" class="hidden g p-4 space-y-3">
+   <p id="cardHeading" class="text-sm font-semibold"></p>
+   <input id="cardNumber" inputmode="numeric" maxlength="19" placeholder="Card number" class="w-full bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700">
+   <div class="grid grid-cols-2 gap-2"><input id="cardExpiry" placeholder="MM/YY" maxlength="5" class="bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700"><input id="cardCvv" inputmode="numeric" placeholder="CVV" maxlength="4" class="bg-slate-950 text-sm rounded-lg px-3 py-2 border border-slate-700"></div>
+   <p class="text-[11px] text-amber-300">Demo checkout only. Do not enter real card details.</p>
+  </div>
+  <div id="pay-qr" class="hidden g p-4 text-center space-y-2">
+   <p class="text-sm">Scan this demo QR with a UPI app</p><img id="paymentQr" class="mx-auto bg-white p-2 rounded-lg w-48 h-48" alt="Demo UPI QR code">
+   <p id="qrAmount" class="font-bold text-cyan-300"></p><p class="text-[11px] text-amber-300">Demo QR uses placeholder UPI ID demo@upi. Payment is not collected or verified.</p>
+  </div>
+  <button id="confirmPaymentBtn" class="b on w-full !py-3" onclick="confirmPayment()">Confirm Order</button>
+ </div>
+</div>
+
+<div id="toast" class="fixed bottom-5 right-5 z-50 translate-y-24 opacity-0 transition-all duration-300 pointer-events-none g bg-slate-900 px-4 py-3 max-w-xs">
+ <div id="tT" class="text-xs font-bold"></div><div id="tM" class="text-[11px] text-slate-300"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id),f=n=>'₹'+Math.round(n).toLocaleString('en-IN'),cap=s=>s[0].toUpperCase()+s.slice(1);
+const N=['online','chennai','vellore','bangalore','warehouse'],ST=['vellore','chennai','bangalore'];
+
+/* sector: icon, name, sub-categories */
+const S={
+auto:['🚗','Automotive Retail',['Car Showroom','Used Cars','EV Showroom','Accessories','Spare Parts']],
+bike:['🏍️','Two-Wheeler Retail',['Bike Showroom','Scooter','EV Bikes','Accessories','Spare Parts']],
+groc:['🛒','Grocery / Supermarket',['Supermarket','Grocery','Hypermarket','Convenience']],
+fash:['👕','Fashion Retail',['Men','Women','Kids','Footwear','Accessories']],
+elec:['📱','Electronics',['Mobile','Laptop','TV','Appliances','Gaming']],
+home:['🛋️','Home & Furniture',['Furniture','Mattress','Home Decor','Kitchen']],
+beau:['💄','Beauty',['Cosmetics','Skincare','Haircare','Beauty Tools']],
+impr:['🏠','Home Improvement',['Hardware','Electrical','Plumbing','Paint','Building Material']],
+dept:['🏬','Department Store',['Fashion','Electronics','Grocery','Home','Beauty','Accessories']]};
+
+/* Product format: name|subcategory index|price|emoji */
+const R={
+auto:['Hyundai Creta SX|0|1650000|🚙','Maruti Swift VXi|0|780000|🚗','Tata Punch|0|720000|🚘','Kia Seltos HTX|0|1500000|🚙','Honda City 2019 (Used)|1|725000|🚘','Toyota Innova 2018 (Used)|1|1450000|🚐','Maruti Baleno 2020 (Used)|1|610000|🚗','Hyundai i20 2021 (Used)|1|690000|🚗','Tata Nexon EV|2|1500000|🔋','MG Comet EV|2|700000|⚡','Tata Tiago EV|2|870000|🔌','Car Dash Camera|3|4500|📹','Leather Seat Covers|3|6500|💺','Car Floor Mats|3|2400|🧽','Car Air Purifier|3|3800|🌬️','Brake Pad Set|4|2800|🛞','Engine Oil 4L|4|2200|🛢️','Car Battery 65Ah|4|7200|🔋','Maruti Brezza ZXi|0|1150000|🚙','Toyota Fortuner 4x4|0|4200000|🚙','Mahindra XUV700 AX7|0|2350000|🚘','Honda Amaze 2024|0|900000|🚗','Hyundai Verna|0|1350000|🚘','Car Seat Organizer|3|1200|🧳','Windshield Sun Shade|3|850|🌞'],
+bike:['Royal Enfield Classic 350|0|193000|🏍️','Yamaha R15 V4|0|182000|🏍️','KTM Duke 200|0|196000|🏍️','Bajaj Pulsar N160|0|135000|🏍️','Honda Activa 6G|1|78000|🛵','TVS Jupiter|1|75000|🛵','Suzuki Access 125|1|82000|🛵','Ola S1 Pro|2|130000|⚡','Ather 450X|2|155000|🔌','TVS iQube|2|125000|🔋','Full-Face Helmet|3|3200|🪖','Riding Gloves|3|900|🧤','Bike Cover|3|650|🛡️','Phone Holder Mount|3|550|📱','Chain Sprocket Kit|4|1800|⛓️','Disc Brake Pads|4|850|🛞','Bike Tyre 90/90|4|2200|⚙️','Engine Oil 1L|4|480|🛢️','Royal Enfield Hunter 350|0|175000|🏍️','Yamaha MT-15|0|170000|🏍️','TVS Apache RTR 200|0|155000|🏍️','Hero Xpulse 200|0|150000|🏍️','Ola Roadster EV|2|140000|⚡','Motorcycle Chain Cleaner|3|450|🧴','LED Bike Indicator Set|3|750|💡'],
+groc:['Basmati Rice 5kg|0|620|🍚','Fresh Milk 1L x6|0|390|🥛','Brown Bread Pack|0|60|🍞','Eggs Tray 30|0|210|🥚','Cold-Pressed Oil 1L|1|210|🫒','Atta 10kg|1|520|🌾','Toor Dal 1kg|1|165|🫘','Sugar 5kg|1|230|🍬','Family Pack Detergent 4kg|2|760|🧴','Monthly Staples Combo|2|2450|🧺','Bulk Cooking Oil 5L|2|950|🛢️','Toilet Paper 12 Rolls|2|480|🧻','Tea Powder 1kg|3|480|🍵','Instant Noodles 12pk|3|150|🍜','Cold Drink 2L|3|95|🥤','Chips Family Pack|3|120|🍟','Biscuit Combo 10pk|3|180|🍪','Bottled Water 20L|3|80|💧','Premium Wheat Flour 5kg|1|290|🌾','Moong Dal 1kg|1|145|🫘','Chana Dal 1kg|1|120|🫘','Sunflower Oil 1L|1|160|🌻','Masala Combo Pack|1|299|🌶️','Breakfast Cereal 1kg|3|380|🥣','Chocolate Family Pack|3|450|🍫'],
+fash:['Men Formal Shirt|0|1499|👔','Men Denim Jeans|0|1999|👖','Men Polo T-Shirt|0|799|👕','Men Blazer|0|4999|🧥','Women Silk Saree|1|4200|🥻','Women Kurti Set|1|1799|👚','Women Maxi Dress|1|2299|👗','Women Leggings Pack|1|899|🩱','Kids Party Wear|2|1299|👗','Kids School Bag|2|999|🎒','Kids T-Shirt Pack|2|699|👕','Running Shoes|3|3499|👟','Leather Sandals|3|1299|🩴','Formal Shoes|3|2999|👞','Heels|3|2199|👠','Leather Wallet|4|899|👛','Sunglasses|4|1599|🕶️','Leather Belt|4|699|🪢','Men Casual Shirt|0|1199|👕','Men Cargo Pants|0|1799|👖','Women Cotton Saree|1|1899|🥻','Women Handbag|1|2499|👜','Kids Hoodie|2|1099|🧥','Sports Sneakers|3|2499|👟','Fashion Cap|4|499|🧢'],
+elec:['5G Smartphone Pro 256GB|0|34999|📱','Budget Phone 128GB|0|12999|📱','Flagship Phone 512GB|0|79999|📱','Wireless Earbuds|0|4999|🎧','Ultrabook Pro 14"|1|72000|💼','Student Laptop 15"|1|38999|💻','Business Laptop i5|1|54999|💻','55" 4K Smart TV|2|42999|📺','43" Full HD TV|2|24999|📺','Soundbar 2.1|2|8999|🔊','Inverter Washing Machine|3|28999|🧺','Double Door Fridge|3|32999|🧊','Split AC 1.5 Ton|3|38999|❄️','Microwave Oven|3|9999|🍲','Predator RTX 4070 Gaming Laptop|4|65000|🎮','Apex RGB Mechanical Keyboard|4|6990|⌨️','HyperSpeed Wireless Mouse|4|3490|🖱️','Gaming Headset|4|4290|🎧','iPhone Pro 256GB|0|119999|📱','Android Flagship 256GB|0|69999|📱','Gaming Laptop RTX 4060|1|89999|💻','27 inch 4K Monitor|1|32999|🖥️','65 inch OLED Smart TV|2|109999|📺','Bluetooth Soundbar|2|12999|🔊','Gaming Controller|4|4999|🎮'],
+home:['L-Shape Sofa|0|38999|🛋️','Teak Dining Table 6-Seater|0|45999|🪑','Wardrobe 3-Door|0|24999|🚪','Study Table|0|8999|📚','TV Unit|0|12999|📺','Orthopedic Mattress Queen|1|18999|🛏️','Memory Foam Mattress King|1|24999|🛏️','Single Bed Mattress|1|9999|🛏️','Wall Art Set of 3|2|3499|🖼️','Ceramic Table Lamp|2|1299|💡','Floor Rug 5x7|2|4999|🧶','Curtain Pair|2|1899|🪟','Wall Clock|2|1199|🕰️','Non-Stick Cookware Set|3|3999|🍳','Mixer Grinder 750W|3|4299|🥤','Pressure Cooker 5L|3|1899|🍲','Dinner Set 24pc|3|2999|🍽️','Air Fryer 4L|3|5999|🍟','3-Seater Recliner Sofa|0|42999|🛋️','Queen Bed with Storage|0|32999|🛏️','Bedside Table Pair|0|6999|🪑','Cotton Mattress Protector|1|2499|🛏️','Decorative Vase Set|2|1799|🏺','Non-Stick Cookware Set|3|3999|🍳','Electric Kettle 1.5L|3|1499|🫖'],
+beau:['Matte Lipstick Set|0|1299|💄','Kajal & Eyeliner Kit|0|699|👁️','Foundation SPF|0|899|🧴','Compact Powder|0|450|🪞','Nail Polish Set|0|599|💅','Vitamin C Serum|1|899|🧴','Sunscreen SPF50|1|599|☀️','Moisturizer 100g|1|499|🧴','Face Wash|1|299|🫧','Night Cream|1|799|🌙','Onion Hair Oil|2|449|💆','Keratin Shampoo|2|650|🧴','Hair Serum|2|550|✨','Conditioner 250ml|2|420|🧴','Hair Dryer Pro|3|2499|💇','Makeup Brush Set|3|1199|🖌️','Hair Straightener|3|1999|💈','Face Roller|3|699|🪨','Matte Lipstick Duo|0|799|💄','Waterproof Mascara|0|699|👁️','Hyaluronic Acid Serum|1|999|🧴','Aloe Vera Gel|1|299|🌿','Anti-Dandruff Shampoo|2|449|🧴','Hair Dryer Compact|3|1599|💇','Facial Cleansing Brush|3|1299|🪥'],
+impr:['Power Drill Set|0|4500|🔧','Tool Kit 120pc|0|2900|🧰','Hammer & Plier Set|0|750|🔨','Door Lock Set|0|1800|🔐','LED Bulb Pack of 10|1|1200|💡','Modular Switch Set|1|2200|🔌','Extension Board|1|650|🔌','Copper Wire 90m|1|2800|🧵','CPVC Pipe Fittings Kit|2|1800|🚰','Water Tank 1000L|2|8500|🛢️','Tap Set|2|950|🚿','Premium Emulsion Paint 20L|3|7800|🎨','Wood Primer 4L|3|1400|🪣','Paint Roller Kit|3|450|🖌️','Cement 50kg Bag|4|420|🧱','TMT Steel Bar Bundle|4|38000|🏗️','River Sand 1 Ton|4|2200|⏳','Red Bricks 1000|4|7500|🧱','Adjustable Wrench Set|0|1299|🔧','Safety Goggles|0|350|🥽','Ceiling Fan 1200mm|1|2899|🌀','Smart Plug 16A|1|899|🔌','Kitchen Faucet Mixer|2|2499|🚰','Weatherproof Exterior Paint 10L|3|3999|🎨','Concrete Blocks Pack of 10|4|650|🧱'],
+dept:['Men T-Shirt Pack of 3|0|1299|👕','Women Kurti|0|999|👚','Kids Jeans|0|799|👖','Smart Watch|1|7999|⌚','Bluetooth Speaker|1|2999|🔊','Power Bank 20000mAh|1|1799|🔋','Organic Staples Combo|2|1450|🧺','Dry Fruits Box|2|899|🥜','Cooking Oil Pack|2|650|🫒','Cotton Bedsheet Set|3|1899|🛏️','Dinner Set|3|2499|🍽️','Storage Containers|3|999|📦','Perfume Gift Set|4|2299|🧴','Skincare Combo|4|1599|🧴','Hair Care Kit|4|1199|💆','Leather Handbag|5|3299|👜','Sunglasses|5|1499|🕶️','Wrist Watch|5|2799|⌚','Men Running T-Shirt|0|899|👕','Women Denim Jacket|0|2299|🧥','Kids Building Blocks Set|0|1199|🧸','Wireless Earbuds|1|2499|🎧','Laptop Backpack|1|1799|🎒','Premium Coffee 500g|2|699|☕','Bath Towel Set|3|1299|🛁']};
+
+const P={
+premium:{n:'Premium Buyer',i:'💎',d:10,desc:'High-value picks with guaranteed fast fulfilment.'},
+smart:{n:'Smart Shopper',i:'🧠',d:15,desc:'Best-value mid-range combos from balanced stock.'},
+budget:{n:'Budget Hunter',i:'🏷️',d:20,desc:'Overstock clearance deals at maximum discount.'}};
+
+/* stock is generated from price tier: costly items = few units, cheap items = many */
+const B=p=>p>500000?2:p>50000?3:p>20000?6:p>5000?10:p>1500?20:40;
+let products=[];
+Object.keys(R).forEach(k=>R[k].forEach((s,i)=>{const a=s.split('|'),price=+a[2],b=B(price);
+ products.push({id:k+i,sec:k,name:a[0],sub:S[k][2][+a[1]],price,icon:a[3],b,inv:{
+  online:Math.round(b*(1+i%3*.5)),chennai:i%7===0?0:Math.round(b*.8),vellore:Math.round(b*(i%5===0?3:1.2)),
+  bangalore:Math.round(b*.9),warehouse:Math.round(b*(b<4?2:i%4===0?8:4))}})}));
+const base=products.map(p=>({...p.inv}));
+const st={sec:'elec',sub:'All',per:'premium',q:'',tab:'store',cart:{},paused:false,prev:14,clicks:0};
+let activeOrder=null;
+const USERS_KEY='omnimesh_demo_users_v1';
+function loadDemoUsers(){try{const value=JSON.parse(localStorage.getItem(USERS_KEY)||'[]');return Array.isArray(value)?value.filter(u=>u&&typeof u.email==='string'&&typeof u.password==='string'&&typeof u.name==='string'):[]}catch{return []}}
+let demoUsers=loadDemoUsers();
+let careMessages=[{from:'Customer Care',text:'Hi! How can we help you today?'}];
+function orderIsPending(){return activeOrder&&activeOrder.status!=='delivered'}
+function blockIfOrderPending(){if(!orderIsPending())return false;toast('Order in Progress','Please wait until your current order is delivered before placing another order.');return true}
+
+const tot=p=>N.reduce((a,n)=>a+p.inv[n],0);
+const route=p=>{if(p.inv.online>0)return'online';const s=[...ST].sort((a,b)=>p.inv[b]-p.inv[a])[0];return p.inv[s]>0?s:(p.inv.warehouse>0?'warehouse':null)};
+const over=p=>p.inv.vellore>=3*p.b||p.inv.warehouse>=8*p.b;
+const status=p=>p.inv.online===0?['Fallback Active','text-amber-400']:over(p)?['Overstock','text-cyan-300']:tot(p)<=p.b*7?['Low Stock','text-rose-400']:['Synced','text-emerald-400'];
+const secProds=()=>products.filter(p=>p.sec===st.sec);
+
+function toast(t,m){$('tT').textContent=t;$('tM').textContent=m;const e=$('toast');e.classList.remove('translate-y-24','opacity-0');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.add('translate-y-24','opacity-0'),2800)}
+function log(s,m){if(st.paused)return;const d=document.createElement('div');d.innerHTML=`<span class="text-slate-600">[${new Date().toLocaleTimeString()}]</span> <b class="text-cyan-400">[${s}]</b> ${m}`;const b=$('logbox');b.appendChild(d);b.scrollTop=b.scrollHeight}
+
+/* views */
+function home(){if(!isLoggedIn()){showLanding();return}$('landing').classList.remove('hidden');$('dash').classList.add('hidden')}
+let authenticated=false;let currentRole='guest';
+function isManager(){return currentRole==='manager'||currentRole==='owner'}
+function canShop(){return currentRole==='customer'||isManager()}
+function requireManager(){if(isManager())return true;toast('Manager permission required','This inventory demo action is available to Manager or Owner roles.');return false}
+function requireShopper(){if(canShop())return true;toast('Customer account required','Guests can browse only. Create or log in to a customer account to use the cart and checkout.');return false}
+function applyRoleUI(){const guest=currentRole==='guest';['n-inv','n-ai'].forEach(id=>$(id).classList.toggle('hidden',!isManager()));$('n-care').classList.toggle('hidden',guest);$('cartBtn').classList.toggle('hidden',!canShop());$('demoTools').classList.toggle('hidden',!isManager())}
+function isLoggedIn(){return authenticated}
+function showLanding(){$('landing').classList.remove('hidden');$('dash').classList.add('hidden');$('orderTracking').classList.add('hidden')}
+function enter(k){if(!isLoggedIn()){showLanding();openAuth('login');toast('Login required','Log in or create an account to use the dashboard.');return}st.sec=k;st.sub='All';st.q='';$('q').value='';$('landing').classList.add('hidden');$('dash').classList.remove('hidden');log('System',`Sector loaded: ${S[k][1]}. Mesh active across 5 nodes.`);go('store')}
+function go(t){if(!isLoggedIn()){showLanding();openAuth('login');return}if(currentRole==='guest'&&t!=='store'){toast('Guest view only','Guests can browse the store catalog.');t='store'}st.tab=t;['store','inv','ai','care'].forEach(x=>{$('t-'+x).classList.toggle('hidden',x!==t);$('n-'+x).classList.toggle('on',x===t)});renderAll()}
+
+function openAuth(mode){$('auth').classList.remove('hidden');switchAuth(mode)}
+function closeAuth(){$('auth').classList.add('hidden')}
+function switchAuth(mode){const signup=mode==='signup';$('loginForm').classList.toggle('hidden',signup);$('signupForm').classList.toggle('hidden',!signup);$('authTitle').textContent=signup?'Create Account':'Login';$('authHint').textContent=signup?'Create an account to continue to your dashboard.':'Log in to continue to your dashboard.';$('authLoginTab').classList.toggle('on',!signup);$('authSignupTab').classList.toggle('on',signup)}
+function submitLogin(e){e.preventDefault();const email=$('loginEmail').value.trim().toLowerCase(),password=$('loginPassword').value;const user=demoUsers.find(u=>u.email===email&&u.password===password);if(!user)return toast('Login failed','Check your email and password, or create an account.');login(user.name,user.role||'customer')}
+function submitSignup(e){e.preventDefault();const name=$('signupName').value.trim(),email=$('signupEmail').value.trim().toLowerCase(),password=$('signupPassword').value,confirm=$('signupConfirm').value;if(password.length<6)return toast('Password too short','Use at least 6 characters.');if(password!==confirm)return toast('Passwords do not match','Please confirm the same password.');if(demoUsers.some(u=>u.email===email))return toast('Account exists','Log in with this email instead.');const user={name,email,password,role:$('signupRole').value||'customer'};demoUsers.push(user);try{localStorage.setItem(USERS_KEY,JSON.stringify(demoUsers))}catch{return toast('Storage unavailable','This browser could not save the demo account. Enable localStorage and try again.')}login(user.name,user.role)}
+function guestLogin(){login('Guest','guest')}
+function login(n,role='customer'){authenticated=true;currentRole=role;$('who').textContent=n;$('loginBtn').classList.add('hidden');$('signupBtn').classList.add('hidden');$('logoutBtn').classList.remove('hidden');$('mainNav').classList.remove('hidden');$('auth').classList.add('hidden');applyRoleUI();toast('Welcome',n==='Guest'?'Continuing as guest':'Logged in as '+n);$('logoutBtn').textContent=n==='Guest'?'Exit Guest':'Log out';enter('elec')}
+function logout(){authenticated=false;currentRole='guest';document.getElementById("logoutBtn").textContent="Log out";document.getElementById("who").textContent="Guest";["loginBtn","signupBtn"].forEach(id=>document.getElementById(id).classList.remove("hidden"));["logoutBtn","mainNav","demoTools","cartBtn"].forEach(id=>document.getElementById(id).classList.add("hidden"));["dash","orderTracking","drawer","paymentModal"].forEach(id=>document.getElementById(id).classList.add("hidden"));document.getElementById("landing").classList.remove("hidden")}
+
+/* render */
+function renderAll(){renderTop();renderProducts();renderBundle();renderInv();renderAgents();renderCart();renderCare()}
+function renderTop(){
+ $('secBar').innerHTML=Object.keys(S).map(k=>`<button class="b ${k===st.sec?'on':''}" onclick="enter('${k}')">${S[k][0]} ${S[k][1]}</button>`).join('');
+ $('perBar').innerHTML=Object.keys(P).map(k=>`<button class="b ${k===st.per?'on':''}" onclick="persona('${k}')">${P[k].i} ${P[k].n}</button>`).join('');
+ $('subBar').innerHTML=['All',...S[st.sec][2]].map(s=>`<button class="b ${s===st.sub?'on':''}" onclick="st.sub='${s}';renderTop();renderProducts()">${s}</button>`).join('');
+}
+function renderProducts(){
+ const l=secProds().filter(p=>(st.sub==='All'||p.sub===st.sub)&&(p.name+p.sub).toLowerCase().includes(st.q));
+ $('cnt').textContent=l.length;
+ $('grid').innerHTML=l.map(p=>{const r=route(p),bd=p.inv.online>0?`Online: ${p.inv.online}`:r?`Fallback: ${cap(r)} (${p.inv[r]})`:'Out of stock';
+ return `<div class="g p-4 flex flex-col justify-between gap-3"><div class="space-y-1"><div class="flex justify-between"><span class="text-3xl">${p.icon}</span><span class="text-[10px] font-mono bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded h-fit">${bd}</span></div><div class="font-bold text-sm">${p.name}</div><div class="text-xs text-slate-400">${p.sub}</div></div><div class="flex justify-between items-center border-t border-slate-800 pt-2"><b class="text-lg">${f(p.price)}</b><button class="b on" ${r&&canShop()?'':'disabled'} onclick="add('${p.id}')">${canShop()?'+ Cart':'Login to shop'}</button></div></div>`}).join('')||'<div class="text-slate-400 text-sm">No products found.</div>';
+}
+function bundle(){const a=[...secProds()].sort((x,y)=>y.price-x.price),m=Math.floor(a.length/2)-1;return st.per==='premium'?a.slice(0,3):st.per==='smart'?a.slice(m,m+3):a.slice(-3)}
+function renderBundle(){
+ const p=P[st.per],it=bundle(),reg=it.reduce((s,x)=>s+x.price,0);
+ $('bItems').innerHTML=it.map(x=>`<div class="bg-slate-900 p-2 rounded-xl border border-slate-800 flex gap-2 items-center"><span class="text-2xl">${x.icon}</span><div class="min-w-0"><div class="text-xs font-bold truncate">${x.name}</div><div class="text-[10px] font-mono text-slate-400">${f(x.price)}</div></div></div>`).join('');
+ $('bReg').textContent=f(reg);$('bDisc').textContent=`AI Mesh Discount Applied (-${p.d}%)`;$('bFinal').textContent=f(reg*(1-p.d/100));
+ $('bTag').textContent='Mesh Pricing: '+p.n;$('hTag').textContent=`${p.i} ${p.n} Persona Active`;
+ $('hTitle').textContent=`${S[st.sec][0]} ${S[st.sec][1]}: ${p.n} Picks`;$('hDesc').textContent=p.desc;
+}
+function renderInv(){
+ $('restockBtn').classList.toggle('hidden',!isManager());
+ $('invTitle').textContent=S[st.sec][1]+' Inventory Control Mesh';
+ $('invBody').innerHTML=secProds().map(p=>{const s=status(p);return `<tr class="hover:bg-slate-900/60"><td class="p-2 font-semibold font-sans">${p.icon} ${p.name}</td><td class="p-2 text-slate-400 font-sans">${p.sub}</td>${N.map(n=>`<td class="p-2 ${n==='online'&&!p.inv.online?'text-rose-400 font-bold':''}">${p.inv[n]}</td>`).join('')}<td class="p-2 font-bold">${tot(p)}</td><td class="p-2 font-sans ${s[1]}">${s[0]}</td><td class="p-2">${isManager()?'<button class="b !text-[10px]" onclick="deplete(\'${p.id}\')">Deplete Online</button>':''}</td></tr>`}).join('');
+ const low=products.filter(p=>status(p)[0]==='Low Stock'||!p.inv.online).length;
+ $('kAll').textContent=products.length;$('kLow').textContent=low;$('kOver').textContent=products.filter(over).length;$('kPrev').textContent=st.prev;$('lowb').textContent=low?low+' alerts':'';
+}
+function renderAgents(){
+ const sp=[...secProds()].sort((a,b)=>tot(b)-tot(a))[0];
+ $('a1').innerHTML=`Profile: <b>${P[st.per].n}</b><br>Affinity: ${88+st.clicks%10}% · Signals: ${st.clicks}`;
+ $('a2').innerHTML=`Nodes: <b>5 Synced</b><br>Top surplus: ${sp.name} (${tot(sp)} units)`;
+ $('a3').innerHTML=`Offer: 3-item bundle<br>Discount: <b>${P[st.per].d}% Off</b>`;
+}
+
+function renderCare(){const box=$('careMessages');if(!box)return;box.replaceChildren();careMessages.forEach(m=>{const row=document.createElement('div');row.className='g p-3';const who=document.createElement('b');who.className='text-cyan-300 text-xs';who.textContent=m.from;const msg=document.createElement('p');msg.className='text-sm text-slate-200 mt-1';msg.textContent=m.text;row.append(who,msg);box.append(row)});box.scrollTop=box.scrollHeight}
+function sendCareMessage(e){e.preventDefault();const input=$('careInput'),text=input.value.trim();if(!text)return;careMessages.push({from:$('who').textContent,text});input.value='';renderCare();setTimeout(()=>{careMessages.push({from:'Customer Care',text:'Thanks for contacting us. Our support team has received your message.'});renderCare()},700)}
+
+/* actions */
+function persona(k){st.per=k;st.clicks++;renderTop();renderBundle();renderAgents();log('Persona Agent','Intent shifted to '+P[k].n);log('Pricing Agent',`Rebuilt bundle with ${P[k].d}% discount`);toast('Persona Updated',P[k].n)}
+function search(v){st.q=v.toLowerCase();st.clicks++;renderProducts();if(v.length>2){log('Persona Agent',`Search signal "${v}" captured`);renderAgents()}}
+function add(id,d){if(!requireShopper()||blockIfOrderPending())return;const p=products.find(x=>x.id===id),c=st.cart[id]||(st.cart[id]={q:0,d:0});c.q++;if(d)c.d=d;st.clicks++;renderCart();renderAgents();log('Inventory Agent',`${p.name} reserved via ${cap(route(p)||'none')} node`);toast('Cart Updated',p.name+' added')}
+function addBundle(){if(!requireShopper()||blockIfOrderPending())return;const d=P[st.per].d;bundle().forEach(p=>add(p.id,d));log('Pricing Agent',`Bundle added with ${d}% discount`);$('drawer').classList.remove('hidden')}
+function renderCart(){
+ let sub=0,dis=0,n=0;
+ $('cartBox').innerHTML=Object.keys(st.cart).map(id=>{const c=st.cart[id],p=products.find(x=>x.id===id);n+=c.q;sub+=p.price*c.q;dis+=p.price*c.q*c.d/100;
+ return `<div class="bg-slate-950 p-2 rounded-xl border border-slate-800 flex justify-between items-center text-xs"><div><div class="font-bold">${p.icon} ${p.name}</div><div class="text-slate-400">${f(p.price)} × ${c.q}${c.d?` · -${c.d}%`:''}</div></div><div class="flex gap-1"><button class="b" onclick="chg('${id}',-1)">−</button><button class="b" onclick="chg('${id}',1)">+</button></div></div>`}).join('')||'<div class="text-slate-400 text-sm">Cart is empty.</div>';
+ $('cc').textContent=n;$('cSub').textContent=f(sub);$('cDis').textContent='-'+f(dis);$('cTot').textContent=f(sub-dis);
+}
+function chg(id,d){const c=st.cart[id];c.q+=d;if(c.q<=0)delete st.cart[id];renderCart()}
+function beginPayment(method){if(!requireShopper()||blockIfOrderPending())return;if(!Object.keys(st.cart).length)return toast('Cart empty','Add something first');checkout();selectPayment(method)}
+function checkout(){
+ if(!requireShopper()||blockIfOrderPending())return;
+ const ids=Object.keys(st.cart);if(!ids.length)return toast('Cart empty','Add something first');
+ $('paymentAmount').textContent=$('cTot').textContent;
+ selectPayment('cod');
+ $('paymentModal').classList.remove('hidden');
+}
+function closePayment(){$('paymentModal').classList.add('hidden')}
+let paymentMethod='cod';
+function selectPayment(method){
+ paymentMethod=method;
+ ['cod','debit','credit','qr'].forEach(k=>$('paybtn-'+k).classList.remove('on'));
+ $('paybtn-'+method).classList.add('on');
+ $('pay-cod').classList.add('hidden');$('pay-card').classList.add('hidden');$('pay-qr').classList.add('hidden');
+ if(method==='debit'||method==='credit'){$('pay-card').classList.remove('hidden');$('cardHeading').textContent=method==='debit'?'Debit Card Details':'Credit Card Details'}
+ else $('pay-'+method).classList.remove('hidden');
+ $('confirmPaymentBtn').textContent=method==='cod'?'Place Cash on Delivery Order':method==='qr'?'I Scanned the QR — Confirm Demo Order':'Pay Securely (Demo)';
+ if(method==='qr'){
+  const amount=Object.keys(st.cart).reduce((sum,id)=>{const c=st.cart[id],p=products.find(x=>x.id===id);return sum+p.price*c.q*(1-c.d/100)},0);
+  $('qrAmount').textContent='Amount: '+f(amount);
+  const upi='upi://pay?pa=demo@upi&pn=OmniMesh%20Demo&am='+amount.toFixed(2)+'&cu=INR&tn=Demo%20Order';
+  $('paymentQr').src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(upi);
+ }
+}
+function confirmPayment(){
+ if(!requireShopper())return;
+ const method=paymentMethod;
+ if(!method)return;
+ if(method==='debit'||method==='credit'){
+  const number=$('cardNumber').value.replace(/\D/g,''),expiry=$('cardExpiry').value.trim(),cvv=$('cardCvv').value.trim();
+  if(number.length<16||!/^\d{2}\/\d{2}$/.test(expiry)||!/^\d{3,4}$/.test(cvv))return toast('Check card details','Enter a 16-digit card number, MM/YY expiry and CVV.');
+ }
+ completeCheckout(method);
+}
+function startDeliveryTracking(method){
+ const order={id:'OM'+Date.now().toString().slice(-6),method,status:'confirmed'};
+ activeOrder=order;
+ $('orderNumber').textContent=order.id;
+ $('deliveryPayment').textContent='Payment: '+({cod:'Cash on Delivery',debit:'Debit Card',credit:'Credit Card',qr:'QR Code (Demo)'}[method]||method);
+ $('orderTracking').classList.remove('hidden');
+ $('deliveryStatus').textContent='Order Confirmed';
+ $('deliveryMessage').textContent='Your order is being prepared. Delivery is on the way.';
+ $('deliveryProgress').style.width='20%';
+ setTimeout(()=>{if(activeOrder!==order)return;order.status='transit';$('deliveryStatus').textContent='Out for Delivery';$('deliveryMessage').textContent='Your order is on its way to you.';$('deliveryProgress').style.width='65%'},5000);
+ setTimeout(()=>{if(activeOrder!==order)return;order.status='delivered';$('deliveryStatus').textContent='Delivered ✓';$('deliveryMessage').textContent='Your order has been delivered. You can place your next order now. Thank you for shopping with OmniMesh!';$('deliveryProgress').style.width='100%';toast('Order Delivered','Order '+order.id+' has been delivered.')},15000);
+}
+function completeCheckout(method){
+ if(!requireShopper())return;
+ const ids=Object.keys(st.cart);let rt=0;
+ ids.forEach(id=>{const p=products.find(x=>x.id===id);for(let i=0;i<st.cart[id].q;i++){const r=route(p);if(r==='online')p.inv.online--;else if(r){p.inv[r]--;rt++;st.prev++;log('Inventory Agent',`${p.name}: online empty, fulfilled from ${cap(r)}`)}}});
+ st.cart={};renderAll();closePayment();$('drawer').classList.add('hidden');
+ startDeliveryTracking(method);
+ const label={cod:'Cash on Delivery',debit:'Debit Card (Demo)',credit:'Credit Card (Demo)',qr:'QR Scan (Demo)'}[method];
+ toast('Order Confirmed!',label+' · '+(rt?`${rt} item(s) fulfilled via nearby store node.`:'Fulfilled from online stock.'));
+}
+function deplete(id){if(!requireManager())return;const p=products.find(x=>x.id===id);p.inv.online=0;log('Inventory Agent',`${p.name} online = 0. Routing to ${cap(route(p)||'none')}`);renderAll()}
+function restock(){if(!requireManager())return;secProds().forEach(p=>p.inv.online=Math.max(p.inv.online,p.b+5));log('Inventory Agent','Online nodes restocked');renderAll()}
+
+/* demo controls */
+function ensure(){if(!isLoggedIn()){showLanding();openAuth('login');toast('Login required','Log in or create an account to use demo controls.');return false}if(!requireManager())return false;if($('dash').classList.contains('hidden'))enter(st.sec);return true}
+function rush(){if(!ensure())return;st.per='premium';const affected={};let changed=0;Object.keys(R).forEach(k=>{const items=products.filter(p=>p.sec===k).sort((a,b)=>b.price-a.price).slice(0,3);items.forEach(p=>{if(p.inv.online>1){p.inv.online=1;changed++;affected[k]=(affected[k]||0)+1}})});st.clicks+=8;go('store');const labels=Object.keys(affected).map(k=>S[k][1]+' ('+affected[k]+')');$('rushMessage').textContent='Simulated a sudden demand spike. Online stock was reduced to 1 unit for '+changed+' high-demand products across '+Object.keys(affected).length+' of 9 sectors: '+labels.join(', ')+'. Open Inventory to inspect the changed quantities.';$('rushBanner').classList.remove('hidden');log('Persona Agent','Demand surge simulated across all 9 retail sectors');log('Inventory Agent',changed+' high-demand products now have 1 online unit across '+Object.keys(affected).length+' sectors');log('Pricing Agent','Bundles shifted to surplus items across all sectors');toast('9-Sector Demand Rush',changed+' products now show reduced online stock. See the banner and Inventory.')}
+function stockout(){if(!ensure())return;const a=secProds().filter(p=>p.inv.online>0),p=a[Math.floor(Math.random()*a.length)];if(!p)return;p.inv.online=0;go('inv');log('Inventory Agent',`STOCKOUT: ${p.name}. Fallback ${cap(route(p)||'none')}`);toast('Stockout Simulated',`${p.name} → ${cap(route(p)||'none')}`)}
+function abandon(){if(!ensure())return;const a=secProds(),p=a[Math.floor(Math.random()*a.length)];add(p.id,10);go('store');$('drawer').classList.remove('hidden');log('Pricing Agent','Abandoned cart: 10% coupon for '+p.name);toast('Abandoned Cart','Dynamic discount coupon generated!')}
+function reset(){if(!requireManager())return;products.forEach((p,i)=>p.inv={...base[i]});st.cart={};st.prev=14;st.clicks=0;$('rushBanner').classList.add('hidden');$('rushMessage').textContent='';renderAll();toast('Reset','Baseline inventory restored')}
+function pause(){if(!requireManager())return;st.paused=!st.paused;$('pz').textContent=st.paused?'▶ Resume':'⏸ Pause'}
+
+$('secGrid').innerHTML=Object.keys(S).map(k=>`<button class="g p-4 text-left hover:border-indigo-400 transition" onclick="enter('${k}')"><div class="text-3xl">${S[k][0]}</div><div class="font-bold text-sm mt-1">${S[k][1]}</div><div class="text-[10px] text-slate-400 mt-1">${S[k][2].join(' · ')}</div></button>`).join('');
+renderCart();
+</script>
+</body></html>
+
+
